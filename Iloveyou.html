@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>I Love You</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: #000;
+    overflow: hidden;
+  }
+  canvas {
+    display: block;
+    margin: 0 auto;
+    background: #000;
+  }
+</style>
+</head>
+<body>
+<canvas id="heart" width="800" height="800"></canvas>
+
+<script>
+const canvas = document.getElementById("heart");
+const ctx = canvas.getContext("2d");
+
+const colors = ["#ff1493", "#ff69b4", "#ff85c8", "#ffb6c1", "#ffc0cb", "#ffe4e1"];
+
+function heartPoint(t) {
+  const x = 16 * Math.pow(Math.sin(t), 3);
+  const y = 13 * Math.cos(t)
+          - 5 * Math.cos(2 * t)
+          - 2 * Math.cos(3 * t)
+          - Math.cos(4 * t);
+  return { x, y };
+}
+
+const cx = canvas.width / 2;
+const cy = canvas.height / 2;
+const yOffset = 40;
+
+let scalesIdx = 0;
+let i = 0;
+const totalI = 120;
+const scales = [11, 12, 13, 14, 15, 16];
+
+function drawStep() {
+  if (scalesIdx >= scales.length) {
+    // Финальная надпись по центру сердечка
+    ctx.fillStyle = "#ff1493";
+    ctx.font = "bold 32px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("I love you", cx, cy + yOffset);
+    return;
+  }
+
+  const scale = scales[scalesIdx];
+  const t = i * (Math.PI * 2) / totalI;
+  const { x, y } = heartPoint(t);
+
+  const px = cx + x * scale;
+  const py = cy - y * scale + yOffset;
+
+  ctx.fillStyle = colors[scalesIdx];
+  ctx.font = `bold ${8 + scalesIdx}px Arial`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("I love you", px, py);
+
+  i++;
+  if (i >= totalI) {
+    i = 0;
+    scalesIdx++;
+  }
+
+  requestAnimationFrame(drawStep);
+}
+
+drawStep();
+</script>
+</body>
+</html>
