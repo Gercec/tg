@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>I Love You</title>
 <style>
   html, body {
@@ -10,16 +11,20 @@
     height: 100%;
     background: #000;
     overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   canvas {
     display: block;
-    margin: 0 auto;
     background: #000;
+    max-width: 100vw;
+    max-height: 100vh;
   }
 </style>
 </head>
 <body>
-<canvas id="heart" width="800" height="800"></canvas>
+<canvas id="heart"></canvas>
 
 <script>
 const canvas = document.getElementById("heart");
@@ -36,20 +41,49 @@ function heartPoint(t) {
   return { x, y };
 }
 
-const cx = canvas.width / 2;
-const cy = canvas.height / 2;
-const yOffset = 40;
+let W, H, cx, cy, yOffset, baseFont, finalFont;
 
+function resize() {
+  const size = Math.min(window.innerWidth, window.innerHeight);
+  const dpr = window.devicePixelRatio || 1;
+
+  canvas.width = size * dpr;
+  canvas.height = size * dpr;
+  canvas.style.width = size + "px";
+  canvas.style.height = size + "px";
+
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  W = size;
+  H = size;
+  cx = W / 2;
+  cy = H / 2;
+  yOffset = H * 0.05;
+
+  // Крупные шрифты, зависящие от размера экрана
+  baseFont = Math.max(10, W * 0.018);   // шрифт для точек-надписей
+  finalFont = Math.max(28, W * 0.09);   // финальная надпись по центру
+}
+
+resize();
+window.addEventListener("resize", () => {
+  resize();
+  // Перезапуск анимации при изменении размера
+  scalesIdx = 0;
+  i = 0;
+  ctx.clearRect(0, 0, W, H);
+});
+
+const scales = [11, 12, 13, 14, 15, 16];
+const totalI = 120;
 let scalesIdx = 0;
 let i = 0;
-const totalI = 120;
-const scales = [11, 12, 13, 14, 15, 16];
 
 function drawStep() {
   if (scalesIdx >= scales.length) {
-    // Финальная надпись по центру сердечка
+    // Финальная крупная надпись по центру сердечка
     ctx.fillStyle = "#ff1493";
-    ctx.font = "bold 32px Arial";
+    ctx.font = `bold ${finalFont}px Arial`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText("I love you", cx, cy + yOffset);
@@ -64,7 +98,7 @@ function drawStep() {
   const py = cy - y * scale + yOffset;
 
   ctx.fillStyle = colors[scalesIdx];
-  ctx.font = `bold ${8 + scalesIdx}px Arial`;
+  ctx.font = `bold ${baseFont + scalesIdx}px Arial`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText("I love you", px, py);
