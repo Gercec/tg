@@ -8,18 +8,16 @@
   html, body {
     margin: 0;
     padding: 0;
+    width: 100%;
     height: 100%;
     background: #000;
     overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
   }
   canvas {
     display: block;
+    width: 100vw;
+    height: 100vh;
     background: #000;
-    max-width: 100vw;
-    max-height: 100vh;
   }
 </style>
 </head>
@@ -41,34 +39,38 @@ function heartPoint(t) {
   return { x, y };
 }
 
-let W, H, cx, cy, yOffset, baseFont, finalFont;
+let W, H, cx, cy, yOffset, heartScale, dotFont, finalFont;
 
 function resize() {
-  const size = Math.min(window.innerWidth, window.innerHeight);
   const dpr = window.devicePixelRatio || 1;
+  W = window.innerWidth;
+  H = window.innerHeight;
 
-  canvas.width = size * dpr;
-  canvas.height = size * dpr;
-  canvas.style.width = size + "px";
-  canvas.style.height = size + "px";
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width = W + "px";
+  canvas.style.height = H + "px";
 
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-  W = size;
-  H = size;
   cx = W / 2;
   cy = H / 2;
-  yOffset = H * 0.05;
 
-  // Крупные шрифты, зависящие от размера экрана
-  baseFont = Math.max(10, W * 0.018);   // шрифт для точек-надписей
-  finalFont = Math.max(28, W * 0.09);   // финальная надпись по центру
+  // Сердечко растягиваем почти на весь экран
+  const minSide = Math.min(W, H);
+  heartScale = minSide / 36;   // базовая формула сердца макс ~ ±16-18 по осям
+  yOffset = H * 0.02;
+
+  // Точки-надписи — крупные, ~3.5% от меньшей стороны
+  dotFont = minSide * 0.035;
+
+  // Финальная надпись — во всю ширину экрана
+  finalFont = Math.min(W * 0.22, H * 0.18);
 }
 
 resize();
 window.addEventListener("resize", () => {
   resize();
-  // Перезапуск анимации при изменении размера
   scalesIdx = 0;
   i = 0;
   ctx.clearRect(0, 0, W, H);
@@ -81,16 +83,16 @@ let i = 0;
 
 function drawStep() {
   if (scalesIdx >= scales.length) {
-    // Финальная крупная надпись по центру сердечка
+    // Финальная надпись во весь экран по центру
     ctx.fillStyle = "#ff1493";
-    ctx.font = `bold ${finalFont}px Arial`;
+    ctx.font = `bold ${finalFont}px Arial, sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText("I love you", cx, cy + yOffset);
     return;
   }
 
-  const scale = scales[scalesIdx];
+  const scale = scales[scalesIdx] * (heartScale / 11);
   const t = i * (Math.PI * 2) / totalI;
   const { x, y } = heartPoint(t);
 
@@ -98,7 +100,7 @@ function drawStep() {
   const py = cy - y * scale + yOffset;
 
   ctx.fillStyle = colors[scalesIdx];
-  ctx.font = `bold ${baseFont + scalesIdx}px Arial`;
+  ctx.font = `bold ${dotFont}px Arial, sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText("I love you", px, py);
